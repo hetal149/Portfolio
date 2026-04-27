@@ -27,7 +27,7 @@ const AccordionTrigger = React.forwardRef(({ className, children, ...props }, re
   </AccordionPrimitive.Header>
 ))
 AccordionTrigger.displayName = AccordionPrimitive.Trigger.displayName
-
+// 1
 const AccordionContent = React.forwardRef(({ className, children, ...props }, ref) => (
   <AccordionPrimitive.Content
     ref={ref}
