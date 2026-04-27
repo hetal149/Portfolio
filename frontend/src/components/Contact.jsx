@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import axios from "axios";
 import { personalInfo } from "../mock";
 import { SectionHeader } from "./About";
 import { Mail, MapPin, Phone, Linkedin, Github, Send, Loader2 } from "lucide-react";
@@ -7,6 +8,8 @@ import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { Label } from "./ui/label";
 import { toast } from "sonner";
+
+const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const Contact = () => {
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
@@ -22,17 +25,40 @@ const Contact = () => {
       toast.error("Please fill in name, email and message.");
       return;
     }
+    if (form.message.trim().length < 10) {
+      toast.error("Message should be at least 10 characters.");
+      return;
+    }
     setSending(true);
-    // Mock submission - will be wired to backend later
-    await new Promise((r) => setTimeout(r, 900));
-    const stored = JSON.parse(localStorage.getItem("contact_messages") || "[]");
-    stored.push({ ...form, at: new Date().toISOString() });
-    localStorage.setItem("contact_messages", JSON.stringify(stored));
-    toast.success("Message saved! I'll get back to you soon.", {
-      description: `Thanks ${form.name} — your message is queued.`,
-    });
-    setForm({ name: "", email: "", subject: "", message: "" });
-    setSending(false);
+    try {
+      const { data } = await axios.post(`${API}/contact`, {
+        name: form.name.trim(),
+        email: form.email.trim(),
+        subject: form.subject?.trim() || null,
+        message: form.message.trim(),
+      });
+      if (data?.email_sent) {
+        toast.success("Message sent successfully!", {
+          description: `Thanks ${form.name}, I'll get back to you soon.`,
+        });
+      } else {
+        toast.success("Message received!", {
+          description: "I've got your message saved and will reach out soon.",
+        });
+      }
+      setForm({ name: "", email: "", subject: "", message: "" });
+    } catch (err) {
+      console.error(err);
+      const detail = err?.response?.data?.detail;
+      toast.error("Could not send message", {
+        description:
+          typeof detail === "string"
+            ? detail
+            : "Please try again in a moment or email me directly.",
+      });
+    } finally {
+      setSending(false);
+    }
   };
 
   const contactItems = [
