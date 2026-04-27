@@ -9,7 +9,8 @@ import { Textarea } from "./ui/textarea";
 import { Label } from "./ui/label";
 import { toast } from "sonner";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+const API_BASE = (process.env.REACT_APP_BACKEND_URL || "").replace(/\/$/, "");
+const API = `${API_BASE}/api`;
 
 const Contact = () => {
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
